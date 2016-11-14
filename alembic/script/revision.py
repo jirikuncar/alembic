@@ -845,6 +845,19 @@ class Revision(object):
             ", ".join(args)
         )
 
+    def __hash__(self):
+        result = hash(self.revision) ^ hash(self.down_revision)
+        for dep in self.dependencies or []:
+            result ^= hash(dep)
+        for label in self.branch_labels or []:
+            result ^= hash(label)
+        return result
+
+    def __cmp__(self, obj):
+        if isinstance(obj, self.__class__):
+            return cmp(self.revision, obj.revision)
+        raise RuntimeError()
+
     def add_nextrev(self, revision):
         self._all_nextrev = self._all_nextrev.union([revision.revision])
         if self.revision in revision._versioned_down_revisions:
